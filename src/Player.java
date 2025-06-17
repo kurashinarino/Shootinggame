@@ -3,9 +3,9 @@ import java.awt.event.KeyListener;
 
 public class Player extends Character implements KeyListener{
 	public void draw(MyFrame f) {
-		f.setColor(0, 128, 0);
+		f.setColor(112,88,163);
 		f.fillRect(x, y+20, 30, 10);
-		f.setColor(200,200,200);
+		f.setColor(190, 162, 202);
 		f.fillRect(x+10, y, 10, 30);
 	}
 	//他のメソッド,コンストラクタは省略
@@ -23,6 +23,8 @@ public class Player extends Character implements KeyListener{
 		}
 		if(e.getKeyCode()==KeyEvent.VK_SPACE) {
 			GameWorld.playerBullets.add(new PlayerBullet(x,y,0,-10));
+			GameWorld.playerBullets.add(new PlayerBullet(x,y,-3,-10));
+			GameWorld.playerBullets.add(new PlayerBullet(x,y,3,-10));
 			System.out.println("弾の数="+
 					           GameWorld.playerBullets.size());
 		}
