@@ -3,7 +3,6 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.Frame;
 import java.awt.Graphics;
-import java.awt.Image;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
@@ -45,6 +44,22 @@ public class MyFrame extends Frame implements Runnable {
 		});
 		//autoSave();
 	}
+	
+	/* 背景クリア防止　*/
+	@Override
+	public void update(Graphics g) {
+		paint(g);
+	}
+	
+	/* 画像転送だけを行う paint */
+	@Override
+	public void paint(Graphics g) {
+		g.drawImage(im, 0, 0, null);
+		if(t==null) { //初回のみスレッド起動
+			t=new Thread(this);
+			t.start();
+		}
+	}
 	public synchronized void saveImage(File dst) throws IOException {
 		ImageIO.write(im, "png", dst);
 	}
@@ -65,17 +80,7 @@ public class MyFrame extends Frame implements Runnable {
 		};
 		new Thread(r).run();
 	}*/
-	/**
-	 * 最初にpaintが呼ばれたときに、スレッドを動かしてアニメーションを制御する
-	 */
-	@Override
-	public void paint(Graphics g) {
-		g.drawImage(im, 0 ,0 , null);
-		if (t==null) {
-			t=new Thread(this);
-			t.start();
-		}
-	}
+	
 	/**
 	 * 四角形を描画する。色はsetColor で指定。
 	 * @param x
@@ -83,20 +88,15 @@ public class MyFrame extends Frame implements Runnable {
 	 * @param w
 	 * @param h
 	 */
-        public synchronized void fillRect(double x, double y, double w, double h) {
-               fillRect((int) x, (int) y, (int) w, (int) h);
-        }
+    public synchronized void fillRect(double x, double y, double w, double h) {
+           fillRect((int) x, (int) y, (int) w, (int) h);
+    }
 	public synchronized void fillRect(int x,int y,int w, int h) {
-		Graphics g=getImageGraphics();
-		if (g!=null) {
-			g.setColor(col);
-			g.fillRect(x, y, w, h);
-		}
-		g=getGraphics();
-		if (g!=null) {
-			g.setColor(col);
-			g.fillRect(x, y, w, h);
-		}
+		Graphics g=im.getGraphics();
+		g.setColor(col);
+		g.fillRect(x, y, w, h);
+		g.dispose();
+		repaint();
 	}
 	public synchronized void clear() {
 		Color s=col;
@@ -105,20 +105,13 @@ public class MyFrame extends Frame implements Runnable {
 		col=s;
 	}
 	public synchronized void fillOval(int x,int y,int w, int h) {
-		Graphics g=getImageGraphics();
-		if (g!=null) {
-			g.setColor(col);
-			g.fillOval(x, y, w, h);
-		}
-		g=getGraphics();
-		if (g!=null) {
-			g.setColor(col);
-			g.fillOval(x, y, w, h);
-		}
+		Graphics g=im.getGraphics();
+		g.setColor(col);
+	    g.fillOval(x, y, w, h);
+		g.dispose();
+		repaint();
 	}
-	private Graphics getImageGraphics() {
-		return im.getGraphics();
-	}
+	
 	/**
 	 * 描画色を指定する。
 	 * @param red
@@ -138,14 +131,9 @@ public class MyFrame extends Frame implements Runnable {
 	 * 一定時間待つ
 	 * @param time
 	 */
-	public void sleep(double time) {
-		try {
-			fillRect(0,0,0,0);// ダミー：これがないとXPで最後の四角形がちらつく
-			Thread.sleep((int)(time*1000));
-
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
+	public void sleep(double sec) {
+		try {Thread.sleep((int)(sec*1000));}
+		catch (InterruptedException e) { e.printStackTrace();}
 	}
 	/**
 	 * アニメーションを行う時は、学習者がrunメソッドをオーバライドする
@@ -157,19 +145,11 @@ public class MyFrame extends Frame implements Runnable {
 
 	}
 	public synchronized void drawString(String str, int x,int y, int size) {
-		Graphics g=getImageGraphics();
-		if (g!=null) {
-			g.setColor(col);
-			g.setFont(new Font("Monospaced",0,size));
-			g.drawString(str, x, y);
-		}
-		//if (locked) return;
-		g=getGraphics();
-		if (g!=null) {
-			g.setColor(col);
-			g.setFont(new Font("Monospaced",0,size));
-			g.drawString(str, x, y);
-		}
+		Graphics g=im.getGraphics();
+		g.setColor(col);
+		g.setFont(new Font("Monospaced",0,size));
+		g.drawString(str, x, y);
+		g.dispose();
+		repaint();
 	}
-
 }
